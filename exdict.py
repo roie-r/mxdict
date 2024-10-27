@@ -177,24 +177,27 @@ class exdict(dict):
 		'''
 		return [(k, v) for k, v in super().items() if k != 'meta']
 
-	def	one_liner(self, sep:str=',') -> str:
+	def one_liner(self, sep1:str=';', sep2:str=',') -> str:
 		'''
 		Returns all values in the dict joined in a string, or None if empty
-		@param sep: Separator between values
+		@param sep1: Root level object separator
+		@param sep2: Sub level value separator
 		'''
-		def	liner(exd):
-			values = []
-			if isinstance(exd, dict):
-				for _,o in exd.data_items(): values += liner(o)
+		def traverse(d):
+			if isinstance(d, dict):
+				result = []
+				for _,dat in d.data_items():
+					result.append(traverse(dat))
+				return sep2.join(result)
 			else:
-				values.append(exd)
-			return values
+				return str(d)
 
 		if len(self) > 0:
-			ds = liner(self)
-			if len(ds) == 1 and (ds[0] is None):
+			res = [traverse(dat) for _,dat in self.data_items()]
+			if len(res) == 1 and (res[0] is None):
 				return None
-			return sep.join([str(s) for s in ds])
+			# use sep2 if data is has single level
+			return (sep1 if res[0].count(sep2) > 0 else sep2).join(res)
 		else:
 			return None
 
@@ -226,14 +229,20 @@ class exdict(dict):
 def main():
 	exd = exdict(casting=True)
 
-	# load an exml for work
-	exd.parse('C:/NMS_UNPACKED/METADATA/REALITY/TABLES/REWARDTABLE.EXML')
+	# exd.parse('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/REWARDTABLE.EXML')
+	# exd.write_exml('D:/_dump/REWARDTABLE.exml')
+	# exd.write_json('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/REWARDTABLE.EXML', 'D:/_dump/REWARDTABLE.json')
 
-	# convert dictionary back to EXML
-	exd.write_exml('C:/TEMP/REWARDTABLE.EXML')
+	exd.parse('D:/MODZ_stuff/NoMansSky/UNPACKED/GCPLACEMENTGLOBALS.EXML')
+	print(exd.one_liner())
 
-	# convert and save EXML to JSON (an aid to see the data's layout)
-	exd.write_json('C:/NMS_UNPACKED/METADATA/REALITY/TABLES/REWARDTABLE.EXML', 'C:/NMS_UNPACKED/REWARDTABLE.json')
+	# exd.parse('D:/MODZ_stuff/NoMansSky/UNPACKED/GCCAMERAGLOBALS.GLOBAL.EXML')
+	# exd.write_exml('D:/_dump/GCCAMERAGLOBALS.GLOBAL.exml')
+	# exd.write_json('D:/MODZ_stuff/NoMansSky/UNPACKED/GCCAMERAGLOBALS.GLOBAL.EXML', 'D:/_dump/GCCAMERAGLOBALS.GLOBAL.json')
+
+	# exd.parse('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/NMS_REALITY_GCTECHNOLOGYTABLE.EXML')
+	# exd.write_exml('D:/_dump/NMS_REALITY_GCTECHNOLOGYTABLE.exml')
+	# exd.write_json('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/NMS_REALITY_GCTECHNOLOGYTABLE.EXML', 'D:/_dump/NMS_REALITY_GCTECHNOLOGYTABLE.json')
 
 	print('\n... Processing Done :)')
 
