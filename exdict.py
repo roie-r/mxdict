@@ -4,7 +4,9 @@ from os.path import exists
 
 class exdict(dict):
 	'''
-	Parse a No Man's Sky exml file and convert it to a working dictionary
+	DEPRECATED: works with EXML files up to version 5.29.
+
+ 	Parse a No Man's Sky exml file and convert it to a working dictionary
 	@param exml: [optional] Either an exml-formatted string or a [*.exml] file path
 	@param casting: [optional] cast values to appropriate types. All are strings if False
 	'''
