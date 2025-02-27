@@ -4,160 +4,181 @@
 #### Example:
 ```json
 {
-    "meta": ["Table", "GcTechnology"],
-    "ID": "PROTECT",
-    "Group": "",
-    "Name": "PROTECT_NAME",
-    "NameLower": "PROTECT_NAME_L",
-    "Subtitle": "PROTECT_SUBTITLE",
-    "Description": "PROTECT_DESCRIPTION",
-    "Teach": true,
-    "HintStart": "",
-    "HintEnd": "",
-    "Icon": {
-        "meta": ["Icon", "TkTextureResource"],
-        "Filename": "TEXTURES/UI/FRONTEND/ICONS/TECHNOLOGY/RENDER.PROTECTGENERIC.DDS",
-        "ResHandle": {
-			"meta": ["ResHandle", "GcResource"],
-			"ResourceID": 0
-		}
-    },
-    "Colour": {
-        "meta": ["Colour", "Colour"],
-        "R": 0.0352941193,
-        "G": 0.360784322,
-        "B": 0.466666669,
-        "A": 1.0
-    },
-    "Level": 1,
-    "Chargeable": true,
-    "ChargeAmount": 80,
-    "ChargeType": {
-        "meta": ["ChargeType", "GcRealitySubstanceCategory"],
-        "SubstanceCategory": "Catalyst"
-    },
-    "ChargeBy": {
-        "meta": ["name", "ChargeBy"],
-        "0": {"meta": ["ChargeBy", "CATALYST1"]},
-        "1": {"meta": ["ChargeBy", "CATALYST2"]},
-        "2": {"meta": ["ChargeBy", "POWERCELL"]}
-    },
-    "ChargeMultiplier": 1.0,
-    "BuildFullyCharged": true,
-    "UsesAmmo": false,
-    "AmmoId": "",
-    "PrimaryItem": true,
-    "Upgrade": false,
-    "Core": true,
-    "RepairTech": false,
-    "Procedural": false,
-    "BrokenSlotTech": false,
-    "Category": {
-        "meta": ["Category", "GcTechnologyCategory"],
-        "TechnologyCategory": "Suit"
-    },
-    "Rarity": {
-        "meta": ["Rarity", "GcTechnologyRarity"],
-        "TechnologyRarity": "Always"
-    },
-    "Value": 10.0,
-    "Requirements": {
-        "meta": ["name", "Requirements"],
-        "0": {
-            "meta": ["Requirements", "GcTechnologyRequirement"],
-            "ID": "LAND1",
-            "Type": {
-                "meta": ["Type", "GcInventoryType"],
-                "InventoryType": "Substance"
+    "template": "cGcRewardTable",
+	"SpecialRewardTable": {
+        "meta": {"name": "SpecialRewardTable"},
+        "R_SWIT_SHIP01": {
+            "meta": {
+                "name": "SpecialRewardTable",
+                "value": "GcGenericRewardTableEntry",
+                "_id": "R_SWIT_SHIP01"
             },
-            "Amount": 100
+            "Id": "R_SWIT_SHIP01",
+            "List": {
+                "meta": {"name": "List", "value": "GcRewardTableItemList"},
+                "RewardChoice": "GiveAll",
+                "OverrideZeroSeed": "false",
+                "UseInventoryChoiceOverride": "false",
+                "IncrementStat": "",
+                "List": {
+                    "meta": {"name": "List"},
+                    "0": {
+                        "meta": {
+                            "name": "List",
+                            "value": "GcRewardTableItem",
+                            "_index": "0"
+                        },
+                        "PercentageChance": "100.000000",
+                        "LabelID": "",
+                        "Reward": {
+                            "meta": {
+                                "name": "Reward",
+                                "value": "GcRewardSpecificShip"
+                            },
+                            "GcRewardSpecificShip": {
+                                "meta": {"name": "GcRewardSpecificShip"},
+                                "0": {
+                                    "meta": {
+                                        "name": "ShipResource",
+                                        "value": "GcResourceElement"
+                                    },
+                                    "Filename": "MODELS/COMMON/SPACECRAFT/FIGHTERS/FIGHTERSPECIALSWITCH.SCENE.MBIN",
+                                    "ResHandle": {
+                                        "meta": {
+                                            "name": "ResHandle",
+                                            "value": "GcResource"
+                                        },
+                                        "ResourceID": "0"
+                                    },
+                                    "Seed": "1",
+                                    "ProceduralTexture": {
+                                        "meta": {
+                                            "name": "ProceduralTexture",
+                                            "value": "TkProceduralTextureChosenOptionList"
+                                        },
+                                        "Samplers": null
+                                    },
+                                    "AltId": ""
+                                },
+                                "1": {
+                                    "meta": {
+                                        "name": "Customisation",
+                                        "value": "GcCharacterCustomisationData"
+                                    },
+                                    "DescriptorGroups": null,
+                                    "PaletteID": "",
+                                    "Colours": null,
+                                    "TextureOptions": null,
+                                    "BoneScales": null,
+                                    "Scale": "1.000000"
+                                },
+                                "2": {
+                                    "meta": {
+                                        "name": "ShipLayout",
+                                        "value": "GcInventoryLayout"
+                                    },
+                                    "Slots": "28",
+                                    "Seed": "1",
+                                    "Level": "1"
+                                },
+                                "3": {
+                                    "meta": {
+                                        "name": "ShipInventory",
+                                        "value": "GcInventoryContainer"
+                                    },
+                                    "Slots": {
+                                        "meta": {"name": "Slots"},
+                                        "LAUNCHER": {
+                                            "meta": {
+                                                "name": "Slots",
+                                                "value": "GcInventoryElement",
+                                                "_id": "LAUNCHER"
+                                            },
+                                            "Type": {
+                                                "meta": {
+                                                    "name": "Type",
+                                                    "value": "GcInventoryType"
+                                                },
+                                                "InventoryType": "Technology"
+                                            },
+                                            "Id": "LAUNCHER",
+                                            "Amount": "200",
+                                            "MaxAmount": "200",
+                                            "DamageFactor": "0.000000",
+                                            "FullyInstalled": "true",
+                                            "Index": {
+                                                "meta": {
+                                                    "name": "Index",
+                                                    "value": "GcInventoryIndex"
+                                                },
+                                                "X": "-1",
+                                                "Y": "-1"
+                                            }
+                                        }
+                                    },
+                                    "ValidSlotIndices": null,
+                                    "Class": {
+                                        "meta": {
+                                            "name": "Class",
+                                            "value": "GcInventoryClass"
+                                        },
+                                        "InventoryClass": "S"
+                                    },
+                                    "StackSizeGroup": {
+                                        "meta": {
+                                            "name": "StackSizeGroup",
+                                            "value": "GcInventoryStackSizeGroup"
+                                        },
+                                        "InventoryStackSizeGroup": "Default"
+                                    },
+                                    "BaseStatValues": null,
+                                    "SpecialSlots": null,
+                                    "Width": "0",
+                                    "Height": "0",
+                                    "IsCool": "false",
+                                    "Name": "",
+                                    "Version": "0"
+                                },
+                                "CostAmount": "0",
+                                "5": {
+                                    "meta": {
+                                        "name": "CostCurrency",
+                                        "value": "GcCurrency"
+                                    },
+                                    "Currency": "Units"
+                                },
+                                "6": {
+                                    "meta": {
+                                        "name": "ShipType",
+                                        "value": "GcSpaceshipClasses"
+                                    },
+                                    "ShipClass": "Fighter"
+                                },
+                                "UseOverrideSizeType": "false",
+                                "8": {
+                                    "meta": {
+                                        "name": "OverrideSizeType",
+                                        "value": "GcInventoryLayoutSizeType"
+                                    },
+                                    "SizeType": "SciSmall"
+                                },
+                                "NameOverride": "UI_SWIT_SHIP_01_NAME_L",
+                                "IsGift": "true",
+                                "IsRewardShip": "true",
+                                "FormatAsSeasonal": "false",
+                                "13": {
+                                    "meta": {
+                                        "name": "ModelViewOverride",
+                                        "value": "GcModelViews"
+                                    },
+                                    "ModelViews": "None"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-    },
-    "BaseStat": {
-        "meta": ["BaseStat", "GcStatsTypes"],
-        "StatsType": "Suit_Protection"
-    },
-    "StatBonuses": {
-        "meta": ["name", "StatBonuses"],
-        "0": {
-            "meta": ["StatBonuses", "GcStatsBonus"],
-            "Stat": {
-                "meta": ["Stat", "GcStatsTypes"],
-                "StatsType": "Suit_Protection"
-            },
-            "Bonus": 1.0,
-            "Level": 1
-        },
-        "1": {
-            "meta": ["StatBonuses", "GcStatsBonus"],
-            "Stat": {
-                "meta": ["Stat", "GcStatsTypes"],
-                "StatsType": "Suit_DamageReduce_Radiation"
-            },
-            "Bonus": 1.0,
-            "Level": 1
-        },
-        "2": {
-            "meta": ["StatBonuses", "GcStatsBonus"],
-            "Stat": {
-                "meta": ["Stat", "GcStatsTypes"],
-                "StatsType": "Suit_DamageReduce_Toxic"
-            },
-            "Bonus": 1.0,
-            "Level": 1
-        },
-        "3": {
-            "meta": ["StatBonuses", "GcStatsBonus"],
-            "Stat": {
-                "meta": ["Stat", "GcStatsTypes"],
-                "StatsType": "Suit_DamageReduce_Cold"
-            },
-            "Bonus": 1.0,
-            "Level": 1
-        }
-    },
-    "RequiredTech": "",
-    "RequiredLevel": 0,
-    "FocusLocator": "",
-    "UpgradeColour": {
-        "meta": ["UpgradeColour", "Colour"],
-        "R": 1.0,
-        "G": 1.0,
-        "B": 1.0,
-        "A": 1.0
-    },
-    "LinkColour": {
-        "meta": ["LinkColour", "Colour"],
-        "R": 0.788235307,
-        "G": 0.815686285,
-        "B": 0.894117653,
-        "A": 1.0
-    },
-    "RewardGroup": "",
-    "BaseValue": 1,
-    "Cost": {
-        "meta": ["Cost", "GcItemPriceModifiers"],
-        "SpaceStationMarkup": 0.0,
-        "LowPriceMod": 0.0,
-        "HighPriceMod": 0.0,
-        "BuyBaseMarkup": 0.0,
-        "BuyMarkupMod": 0.0
-    },
-    "RequiredRank": 2,
-    "DispensingRace": {
-        "meta": ["DispensingRace", "GcAlienRace"],
-        "AlienRace": "Explorers"
-    },
-    "FragmentCost": 1,
-    "TechShopRarity": {
-        "meta": ["TechShopRarity", "GcTechnologyRarity"],
-        "TechnologyRarity": "Impossible"
-    },
-    "WikiEnabled": true,
-    "NeverPinnable": false,
-    "DamagedDescription": "",
-    "ParentTechId": "",
-    "IsTemplate": false,
-    "ExclusivePrimaryStat": false
+    }
 }
 ```
