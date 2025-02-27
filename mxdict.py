@@ -2,16 +2,33 @@ import xml.etree.ElementTree as ET
 from json import dumps as jdumps
 from os.path import exists
 
+__author__	= 'lMonk'
+__version__	= '1.2.2'
+
 class mxdict(dict):
 	'''
 	Parses a No Man's Sky mxml file and converts it to a working searchable dictionary,
 	Sets class and value names as unique keys wherever possible for direct access.
-	@param mxml: [optional] Either an mxml-formatted string or a [*.mxml] file path
-	@param casting: [optional] cast values to appropriate types. All are strings if False
 	'''
-	def __init__(self, mxml:str=None, casting:bool=False):
+	def __init__(self, mxml:str=None, casting:bool=False, use_id:bool=False, ext:dict=None):
+		'''
+		@param mxml: [optional] Either an mxml-formatted string or a [*.mxml] file path
+		@param casting: [optional] cast values to appropriate types. All are strings if False
+		@param use_id: [optional] Use the _id attribute as dictionary keys where available
+		@param dct: [optional] Copy values from an external dictionary
+		'''
 		self.__mxml = mxml
 		self.__cast = casting
+		self.__useid = use_id
+		if ext is not None: self.update(ext)
+
+	@property
+	def use_id(self) -> bool:
+		''' Use _id attribute as dictionary keys '''
+		return self.__useid
+	@use_id.setter
+	def use_id(self, i:bool):
+		self.__useid = i
 
 	@property
 	def casting(self) -> bool:
@@ -21,14 +38,16 @@ class mxdict(dict):
 		'''
 		return self.__cast
 	@casting.setter
-	def casting(self, c:bool): self.__cast = c
+	def casting(self, c:bool):
+		self.__cast = c
 
 	@property
 	def mxml(self) -> str:
 		''' Either an mxml-formatted string or a [*.mxml] file path '''
 		return self.__mxml
 	@mxml.setter
-	def mxml(self, e): self.__mxml = e
+	def mxml(self, e):
+		self.__mxml = e
 
 	def parse(self, mxml:str=None) -> dict:
 		'''
@@ -55,7 +74,9 @@ class mxdict(dict):
 		'''
 		evaluate value and cast to appropriate type
 		(rudimentary - but it's enough)
+		Skipped by class flag 'casting'
 		'''
+		if not self.__cast: return val
 		try:
 			if val.count('.') > 0:
 				return float(val)
@@ -66,61 +87,43 @@ class mxdict(dict):
 			if val == 'false': return False
 			return val
 
-	def	__attr(self, n):
-		'''
-		Return values from node attributes (skipping the useless tags)
-		cast values to real types (optional with class flag 'casting')
-		'''
-		if len(n) > 2:
-			return n['name'], n['value'], n['linked']
-		elif len(n) > 1:
-			return n['name'], self.__eval(n['value']) if self.__cast else n['value'], None
-		elif len(n) > 0:
-			if 'name'	  in n: return 'name',		n['name'], None
-			if 'value'	  in n: return 'value',		self.__eval(n['value']) if self.__cast else n['value'], None
-			if 'template' in n: return 'template',	n['template'], None
-		return None
-
 	def __to_dict(self, tree, dct):
 		'''
 		Traverse mxml file or sections and build an equivalent dictionary
 		'''
-		rk, rv, rl = self.__attr(tree.attrib)
-		if rk == 'template':
-			dct[rk] = rv
+		paren = tree.attrib
+		if 'template' in paren:
+			dct['template'] = paren['template']
 		else:
-			dct['meta'] = [rk, rv]
-			if rl is not None: dct['meta'].append(rl)
+			dct['meta'] = paren.copy()
 
-		for node in tree:
-			k, v, _ = self.__attr(node.attrib)
-			if len(node) > 0:
-				if k == 'name':
-				# new ordered list section
-					key = v
-				else:
-					if rk != 'name':
-					# new class section
-						key = k
+		for nod in tree:
+			node = nod.attrib
+			if len(nod) > 0:
+				if '_id' in node:
+					if self.__useid:
+						key = node['_id']
 					else:
-					# ordered list nested inside ordered list
 						key = len(dct) - 1
+				elif '_index' in node:
+					key = len(dct) - 1
+				elif ('name' in node and len(node) == 1) or 'template' in paren or len(paren) > 1:
+					key = node['name']
+				else:
+					key = len(dct) - 1
 
-				dct[key] = self.__to_dict(node, mxdict(casting=self.__cast))
+				dct[key] = self.__to_dict(nod, mxdict(casting=self.__cast, use_id=self.__useid))
 
 			else:
-				if k == 'value':
-				# non-named values
-					dct[len(dct) - 1] = v
-				elif k == 'name':
+				if 'name' in node and len(node) == 1:
 				# empty list stub
-					dct[v] = None
-				elif rk == 'name':
-				# v5.30+ ordered list value
-					dct[len(dct) - 1] = self.__to_dict(node, mxdict(casting=self.__cast))
+					dct[node['name']] = None
+				elif 'name' in paren and node['name'] == paren['name'] and len(paren) == 1:
+				# ordered list value
+					dct[len(dct) - 1] = self.__eval(node['value'])
 				else:
 				# regular property
-					dct[k] = v
+					dct[node['name']] = self.__eval(node['value'])
 
 		return dct
 
@@ -145,31 +148,15 @@ class mxdict(dict):
 		for key, cls in dct.items():
 			if key != 'meta' and key != 'template':
 				# open new node
-				sdic = isinstance(cls, dict)
 				node = ET.SubElement(tree, 'Property')
-				if sdic:
-					# 2-attribute
-					att2 = cls['meta'][0] != 'name'
-					if att2:
-						att, val = cls['meta'][0], cls['meta'][1]
-						if att == 'value':
-							attribs = {'value': val}
-						else:
-							attribs = {'name': att, 'value': val}
-							if len(cls['meta']) > 2:
-								attribs.update({'linked': cls['meta'][2]})
-					# 1-attribute : new list
-					else:
-						attribs = {'value' if att2 else 'name': key}
-
-					node.attrib = attribs
+				if isinstance(cls, dict):
+					node.attrib = cls['meta'].copy()
 					self.__to_tree(cls, node)
 				# add properties
 				else:
-					# if key.isnumeric():
 					if isinstance(key, int):
-						# 'un-named' list property
-						attribs = {'value': str(cls)}
+						# ordered list property
+						attribs = {'name': dct['meta']['name'], 'value': str(cls)}
 					elif cls is not None:
 						# normal property
 						attribs = {'name': key, 'value': str(cls)}
@@ -181,13 +168,27 @@ class mxdict(dict):
 
 		return tree
 
-	def append(self, key:str=None, val=''):
+	def update(self, dct:dict):
+		'''
+		Overwrites dict.update() to perform deep-copy into self
+		while initiating mxdict for sub-dicts
+		@param dct: Copy values from an external dictionary
+		'''
+		for key, val in dct.items():
+			if key is None: key = len(self)
+
+			if isinstance(val, dict) and key != 'meta':
+				super().update({key: mxdict(casting=self.__cast, use_id=self.__useid, ext=val)})
+			else:
+				super().update({key: val})
+
+	def append(self, key:str=None, value=''):
 		'''
 		Add new keyed dictionary value or append to a 'list' with sequential keys
 		'''
-		if 'meta' in self and self['meta'][0] == 'name':
+		if 'meta' in self and 'name' in self['meta']:
 			key = len(self) - 1
-		self[key] = val
+		self[key] = value
 
 	def data_keys(self) -> list:
 		'''
@@ -211,30 +212,18 @@ class mxdict(dict):
 			if isinstance(d, dict):
 				result = []
 				for _,dat in d.data_items():
-					if d['meta'][0] == 'name' and len(d[0]) == 1:
-						# v5.30 nested arrays fix
-						result.append(traverse(dat['meta'][1]))
-					else:
-						result.append(traverse(dat))
+					result.append(traverse(dat))
 				return sep2.join(result)
 			else:
 				return str(d)
 
-		if len(self) > 0:
-			if self['meta'][0] == 'name' and len(self[0]) == 1:
-				# v5.30 nested arrays fix
-				contr = mxdict()
-				contr.update({0: self})
-				res = [traverse(dat) for _,dat in contr.data_items()]
-			else:
-				res = [traverse(dat) for _,dat in self.data_items()]
+		if len(self) <= 0: return None
 
-			if len(res) == 1 and (res[0] is None):
-				return None
-			# use sep2 if data has a single level
-			return (sep1 if res[0].count(sep2) > 0 else sep2).join(res)
-		else:
+		res = [traverse(dat) for _,dat in self.data_items()]
+		if len(res) == 1 and (res[0] is None):
 			return None
+		# use sep2 if data has a single level
+		return (sep1 if res[0].count(sep2) > 0 else sep2).join(res)
 
 	def write_mxml(self, target:str):
 		'''
@@ -259,20 +248,14 @@ class mxdict(dict):
 			with open(target, 'w') as f:
 				f.write(jdumps(self))
 		else:
-			print('mxdictionary is empty.')
+			print('mxdict is empty.')
 
 def main():
-	mxd = mxdict(casting=True)
+	mxd = mxdict(casting=False, use_id=True)
 
-	mxd.write_json('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/nms_reality_gctechnologytable.mxml', 'D:/_dump/nms_reality_gctechnologytable.json')
-
-	# mxd.parse('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/REWARDTABLE.mxml')
-	# mxd.write_mxml('D:/_dump/REWARDTABLE.mxml')
-	# mxd.write_json('D:/MODZ_stuff/NoMansSky/UNPACKED/METADATA/REALITY/TABLES/REWARDTABLE.mxml', 'D:/_dump/REWARDTABLE.json')
-
-
-	# mxd.parse('D:/_Dump/playercharacter.entity.mxml')
-	# mxd.write_mxml('D:/_Dump/playercharacter.entity_processed.mxml')
+	mxd.parse('C:/NMS/metadata/reality/tables/rewardtable.mxml')
+	mxd.write_mxml('C:/NMS/_dump/rewardtable.mxml')
+	mxd.write_json(target='C:/NMS/_dump/rewardtable.json')
 
 	print('\n... Processing Done :)')
 
