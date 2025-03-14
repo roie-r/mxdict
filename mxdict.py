@@ -3,7 +3,40 @@ from json import dumps as jdumps
 from os.path import exists
 
 __author__	= 'lMonk'
-__version__	= '1.2.2'
+__version__	= '1.3.01'
+
+class meta:
+	'''
+	Manage class attributes and helper functions
+	'''
+	def __init__(self, attr:dict=None):
+		self.__attrib = attr.copy()
+
+	@property
+	def name(self):
+		return self.__attrib['name'] if 'name' in self.__attrib else False
+	@property
+	def value(self):
+		return self.__attrib['value'] if 'value' in self.__attrib else False
+	@property
+	def template(self):
+		return self.__attrib['template'] if 'template' in self.__attrib else False
+	@property
+	def id(self):
+		return self.__attrib['_id'] if '_id' in self.__attrib else False
+	@property
+	def index(self):
+		return self.__attrib['_index'] if '_index' in self.__attrib else False
+	@property
+	def cls(self):
+		return 'name' in self.__attrib and (
+			self.__attrib['name'].startswith('Gc') or \
+			self.__attrib['name'].startswith('Tk') or \
+			len(self.__attrib) > 1
+		)
+	@property
+	def lst(self):
+		return len(self.__attrib) == 1
 
 class mxdict(dict):
 	'''
@@ -15,7 +48,7 @@ class mxdict(dict):
 		@param mxml: [optional] Either an mxml-formatted string or a [*.mxml] file path
 		@param casting: [optional] cast values to appropriate types. All are strings if False
 		@param use_id: [optional] Use the _id attribute as dictionary keys where available
-		@param dct: [optional] Copy values from an external dictionary
+		@param ext: [optional] Import values from an external dictionary
 		'''
 		self.__mxml = mxml
 		self.__cast = casting
@@ -91,39 +124,39 @@ class mxdict(dict):
 		'''
 		Traverse mxml file or sections and build an equivalent dictionary
 		'''
-		paren = tree.attrib
-		if 'template' in paren:
-			dct['template'] = paren['template']
+		parent = meta(tree.attrib)
+		if parent.template:
+			dct['template'] = parent.template
 		else:
-			dct['meta'] = paren.copy()
+			dct['meta'] = tree.attrib.copy()
 
-		for nod in tree:
-			node = nod.attrib
-			if len(nod) > 0:
-				if '_id' in node:
-					if self.__useid:
-						key = node['_id']
-					else:
-						key = len(dct) - 1
-				elif '_index' in node:
-					key = len(dct) - 1
-				elif ('name' in node and len(node) == 1) or 'template' in paren or len(paren) > 1:
-					key = node['name']
+		for nd in tree:
+			node = meta(nd.attrib)
+			if len(nd) > 0:
+				if node.id and self.__useid:
+					key = node.id
+				elif parent.template or parent.cls:
+					key = node.name
 				else:
 					key = len(dct) - 1
 
-				dct[key] = self.__to_dict(nod, mxdict(casting=self.__cast, use_id=self.__useid))
+				dct[key] = self.__to_dict(nd, mxdict(casting=self.__cast, use_id=self.__useid))
 
 			else:
-				if 'name' in node and len(node) == 1:
-				# empty list stub
-					dct[node['name']] = None
-				elif 'name' in paren and node['name'] == paren['name'] and len(paren) == 1:
-				# ordered list value
-					dct[len(dct) - 1] = self.__eval(node['value'])
+				if node.lst:
+					# empty list stub
+					key = node.name
+					val = None
+				elif node.name == parent.name and parent.lst:
+					# ordered list value
+					key = len(dct) - 1
+					val = self.__eval(node.value)
 				else:
-				# regular property
-					dct[node['name']] = self.__eval(node['value'])
+					# regular property
+					key = node.name
+					val = self.__eval(node.value)
+
+				dct[key] = val
 
 		return dct
 
@@ -251,11 +284,15 @@ class mxdict(dict):
 			print('mxdict is empty.')
 
 def main():
-	mxd = mxdict(casting=False, use_id=True)
+	mxd = mxdict(casting=False, use_id=False)
 
-	mxd.parse('C:/NMS/metadata/reality/tables/rewardtable.mxml')
-	mxd.write_mxml('C:/NMS/_dump/rewardtable.mxml')
-	mxd.write_json(target='C:/NMS/_dump/rewardtable.json')
+	mxd.parse('d:/modz_stuff/nomanssky/unpacked/metadata/reality/defaultreality.mxml')
+	mxd.write_mxml('D:/_dump/defaultreality.mxml')
+	mxd.write_json(target='D:/_dump/defaultreality.json')
+
+	# mxd.parse('D:/MODZ_stuff/NoMansSky/UNPACKED/metadata/reality/tables/rewardtable.mxml')
+	# mxd.write_mxml('D:/_dump/rewardtable.mxml')
+	# mxd.write_json(target='D:/_dump/rewardtable.json')
 
 	print('\n... Processing Done :)')
 
